@@ -1,6 +1,7 @@
 // src/app/api/ask/route.ts
 import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/src/utils/supabaseAdmin";
+import { supabaseAdmin } from "@/utils/supabaseAdmin";
+
 
 export async function POST(req: Request) {
   try {
