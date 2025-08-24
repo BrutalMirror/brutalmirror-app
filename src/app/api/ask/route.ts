@@ -2,11 +2,11 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/utils/supabaseAdmin";
 
+type Body = { character?: string; question?: string };
 
 export async function POST(req: Request) {
   try {
-    const { character, question } = await req.json();
-
+    const { character, question }: Body = await req.json();
     if (!character || !question) {
       return NextResponse.json(
         { error: "Character & question are required" },
@@ -14,21 +14,22 @@ export async function POST(req: Request) {
       );
     }
 
-    // Φτιάχνουμε system prompt για κάθε χαρακτήρα
-    const systemPrompt = {
-      FunnyGuy: "Είσαι stand-up κωμικός. Απαντάς ΠΑΝΤΑ με αστεία, ανέκδοτα και χιούμορ.",
-      GossipGirl: "Είσαι κουτσομπόλα γειτόνισσα. ΠΑΝΤΑ με σπόντες, φήμες και κουτσομπολιά.",
-      AngryMan: "Είσαι ΠΑΝΤΑ έξαλλος και θυμωμένος. Χρησιμοποιείς ΚΕΦΑΛΑΙΑ και αγανάκτηση.",
-      ColdRealist: "Είσαι ψυχρός ρεαλιστής. Στεγνά, αντικειμενικά, χωρίς συναίσθημα.",
-      LoverGirl: "Είσαι γοητευτική, ερωτική γυναίκα. Μιλάς με ρομαντισμό.",
-      IronicLady: "Είσαι ειρωνική και σαρκαστική παντογνώστρια.",
-      SaintBot: "Είσαι Ορθόδοξος πνευματικός. Μιλάς με ταπεινότητα και βάση την Αγία Γραφή.",
-    }[character] ?? "Απάντα απλά.";
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: "OPENAI_API_KEY missing" },
+        { status: 500 }
+      );
+    }
 
-    const openAiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+    // Prompt ανάλογα τον χαρακτήρα
+    const systemPrompt = `Είσαι ο χαρακτήρας ${character}. Απάντησε με το προσωπικό του στυλ.`;
+
+    // Ζητάμε απάντηση από OpenAI
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -38,17 +39,21 @@ export async function POST(req: Request) {
           { role: "user", content: question },
         ],
         temperature: 0.9,
-        max_tokens: 300,
+        max_tokens: 500,
       }),
     });
 
-    if (!openAiRes.ok) {
-      const errText = await openAiRes.text();
-      return NextResponse.json({ error: "OpenAI error", details: errText }, { status: 502 });
+    if (!response.ok) {
+      const errText = await response.text();
+      return NextResponse.json(
+        { error: "OpenAI error", details: errText },
+        { status: 502 }
+      );
     }
 
-    const data = await openAiRes.json();
-    const answer = data?.choices?.[0]?.message?.content?.trim() || "—";
+    const data = await response.json();
+    const answer: string =
+      data?.choices?.[0]?.message?.content?.trim?.() ?? "—";
 
     // Αποθήκευση στο Supabase
     const { error } = await supabaseAdmin
@@ -56,11 +61,17 @@ export async function POST(req: Request) {
       .insert({ character, question, answer, status: "done" });
 
     if (error) {
-      return NextResponse.json({ error: "Supabase insert failed", details: error.message }, { status: 500 });
+      return NextResponse.json(
+        { error: "Supabase insert failed", details: error.message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ ok: true, answer });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message ?? "Unexpected error" }, { status: 500 });
+    return NextResponse.json(
+      { error: err?.message ?? "Unexpected error" },
+      { status: 500 }
+    );
   }
 }
