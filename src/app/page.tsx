@@ -1,5 +1,7 @@
 'use client';
 
+import Link from "next/link";
+
 export default function Home() {
   return (
     <main
@@ -27,6 +29,26 @@ export default function Home() {
           />
         </span>
       </p>
+
+      {/* κουμπί για το Chat (σε νέο tab) */}
+      <div style={{ marginTop: '2rem' }}>
+        <Link href="/chat" target="_blank" rel="noopener noreferrer">
+          <button
+            style={{
+              padding: '0.75rem 1.5rem',
+              backgroundColor: '#f00',
+              color: '#fff',
+              fontWeight: 'bold',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '1rem',
+            }}
+          >
+            👉 Go to Chat
+          </button>
+        </Link>
+      </div>
 
       <p style={{ marginTop: '2rem', fontStyle: 'italic', opacity: 0.6 }}>
         Stay tuned. Or don&apos;t. Δεν μας νοιάζει.
