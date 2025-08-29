@@ -1,3 +1,4 @@
+// src/app/layout.tsx
 import "./globals.css";
 import Link from "next/link";
 
@@ -10,8 +11,7 @@ export const metadata = {
   },
   openGraph: {
     title: "BrutalMirror",
-    description:
-      "Ρώτα. Θα πονέσει. Το πιο brutal AI που γνώρισες ποτέ.",
+    description: "Ρώτα. Θα πονέσει. Το πιο brutal AI που γνώρισες ποτέ.",
     url: "https://brutalmirror.vercel.app",
     siteName: "BrutalMirror",
     images: [
