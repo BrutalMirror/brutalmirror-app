@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabaseClient'; // Χρησιμοποιούμε σχετικό path
+import { supabase } from '../utils/supabaseClient'; // Χρησιμοποιούμε σχετικό path
 
 type QuestionItem = {
   id: number;
