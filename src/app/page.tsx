@@ -41,7 +41,7 @@ export default function Home() {
         {characters.map((char) => (
           <Link
             key={char.name}
-            href={`/brutalchat?character=${char.name}`}
+            href={`/ask/${char.name}`} // 👉 τώρα πάει στο Q&A per character
             style={{ textDecoration: "none" }}
           >
             <div
