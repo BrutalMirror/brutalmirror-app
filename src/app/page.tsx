@@ -39,17 +39,24 @@ export default function Home() {
         }}
       >
         {characters.map((char) => (
-          <div
+          <Link
             key={char.name}
-            style={{
-              backgroundColor: "#222",
-              padding: "1rem",
-              borderRadius: "8px",
-              boxShadow: "0 0 10px rgba(0,0,0,0.5)",
-            }}
+            href={`/brutalchat?character=${char.name}`}
+            style={{ textDecoration: "none" }}
           >
-            <p style={{ fontSize: "1.5rem" }}>{char.label}</p>
-          </div>
+            <div
+              style={{
+                backgroundColor: "#222",
+                padding: "1rem",
+                borderRadius: "8px",
+                boxShadow: "0 0 10px rgba(0,0,0,0.5)",
+                cursor: "pointer",
+                transition: "0.2s",
+              }}
+            >
+              <p style={{ fontSize: "1.5rem", color: "#fff" }}>{char.label}</p>
+            </div>
+          </Link>
         ))}
       </div>
 
@@ -66,13 +73,9 @@ export default function Home() {
             fontSize: "1rem",
           }}
         >
-          🚀 Go to BrutalChat
+          🚀 Go to BrutalChat (All)
         </button>
       </Link>
-
-      <p style={{ marginTop: "2rem", fontStyle: "italic", opacity: 0.6 }}>
-        Stay tuned. Brutality is coming.
-      </p>
     </main>
   );
 }
