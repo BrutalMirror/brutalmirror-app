@@ -1,9 +1,12 @@
 'use client';
 
+export const dynamic = "force-dynamic";
+
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import ChatRoom from "@/components/ChatRoom";
 
-export default function BrutalChatPage() {
+function BrutalChatInner() {
   const searchParams = useSearchParams();
   const character = searchParams.get("character") || "All";
 
@@ -13,3 +16,12 @@ export default function BrutalChatPage() {
     </main>
   );
 }
+
+export default function BrutalChatPage() {
+  return (
+    <Suspense fallback={<div>Loading chat...</div>}>
+      <BrutalChatInner />
+    </Suspense>
+  );
+}
+
