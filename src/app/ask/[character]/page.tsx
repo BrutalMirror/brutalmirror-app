@@ -18,7 +18,7 @@ export default function AskCharacterPage() {
   const [loading, setLoading] = useState(false);
   const [qaList, setQaList] = useState<QuestionRow[]>([]);
 
-  // φόρτωσε τις τελευταίες 5 ερωτήσεις/απαντήσεις
+  // φόρτωσε τις τελευταίες 5
   const loadHistory = async () => {
     const { data, error } = await supabase
       .from("questions")
@@ -28,7 +28,7 @@ export default function AskCharacterPage() {
       .limit(5);
 
     if (!error && data) {
-      setQaList(data.reverse()); // τα βάζουμε με σωστή σειρά
+      setQaList(data.reverse());
     }
   };
 
@@ -40,54 +40,36 @@ export default function AskCharacterPage() {
     if (!question.trim()) return;
     setLoading(true);
 
-    const { data, error } = await supabase
-      .from("questions")
-      .insert([{ character: character, question: question, answer: null }])
-      .select()
-      .single();
+    try {
+      const res = await fetch("/api/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ character, question }),
+      });
 
-    if (error) {
-      console.error("Error inserting question:", error);
-      setLoading(false);
-      return;
+      const data = await res.json();
+
+      if (res.ok && data.ok) {
+        setQaList((prev) => [
+          ...prev.slice(-4),
+          {
+            id: crypto.randomUUID(),
+            character: character as string,
+            question,
+            answer: data.answer,
+            created_at: new Date().toISOString(),
+          },
+        ]);
+        setQuestion("");
+      } else {
+        console.error("API Error:", data.error);
+      }
+    } catch (err) {
+      console.error("Fetch failed:", err);
     }
-
-    setQuestion("");
-
-    // πρόσθεσε προσωρινά στο ιστορικό
-    setQaList((prev) => [
-      ...prev.slice(-4), // κρατάμε τα 4 τελευταία
-      data, // προσθέτουμε το νέο
-    ]);
 
     setLoading(false);
   };
-
-  // realtime listener για updates
-  useEffect(() => {
-    const channel = supabase
-      .channel("answers-listener")
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "questions",
-          filter: `character=eq.${character}`,
-        },
-        (payload) => {
-          const updated = payload.new as QuestionRow;
-          setQaList((prev) =>
-            prev.map((q) => (q.id === updated.id ? updated : q))
-          );
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [character]);
 
   return (
     <main
@@ -144,13 +126,7 @@ export default function AskCharacterPage() {
         </button>
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "1rem",
-        }}
-      >
+      <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
         {qaList.length === 0 ? (
           <p style={{ textAlign: "center", color: "#666" }}>
             Δεν υπάρχουν ερωτήσεις ακόμα.
@@ -170,8 +146,7 @@ export default function AskCharacterPage() {
                 <strong>Ερώτηση:</strong> {q.question}
               </p>
               <p>
-                <strong>Απάντηση:</strong>{" "}
-                {q.answer ? q.answer : "⏳ Περιμένω απάντηση..."}
+                <strong>Απάντηση:</strong> {q.answer || "⏳ Περιμένω απάντηση..."}
               </p>
             </div>
           ))
