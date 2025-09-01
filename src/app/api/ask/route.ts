@@ -58,7 +58,7 @@ export async function POST(req: Request) {
     // Αποθήκευση στο Supabase
     const { error } = await supabaseAdmin
       .from("questions")
-      .insert({ character, question, answer, status: "done" });
+      .insert({ character, question, answer });
 
     if (error) {
       return NextResponse.json(
