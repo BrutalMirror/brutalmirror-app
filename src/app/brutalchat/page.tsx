@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 import ChatRoom from "@/components/ChatRoom";
 
 function BrutalChatInner() {
+  // εδώ τρέχει μόνο στον client
   const searchParams = useSearchParams();
   const character = searchParams.get("character") || "All";
 
@@ -19,9 +20,8 @@ function BrutalChatInner() {
 
 export default function BrutalChatPage() {
   return (
-    <Suspense fallback={<div>Loading chat...</div>}>
+    <Suspense fallback={<div className="p-4">Loading chat...</div>}>
       <BrutalChatInner />
     </Suspense>
   );
 }
-
