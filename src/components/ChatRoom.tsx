@@ -3,11 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/utils/supabaseClient";
 
-interface ChatMessage {
+interface QuestionRow {
   id: string;
-  username: string;
-  character: string | null;
-  content: string;
+  character: string;
+  question: string;
+  answer: string | null;
   created_at: string;
 }
 
@@ -26,20 +26,22 @@ const bots = [
 ];
 
 export default function ChatRoom({ character }: ChatRoomProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<QuestionRow[]>([]);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  // scroll always to bottom
+  // scroll πάντα στο κάτω μέρος
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Φόρτωμα μηνυμάτων από Supabase
+  // φόρτωμα ερωτήσεων/απαντήσεων από Supabase
   useEffect(() => {
     const loadMessages = async () => {
-      let query = supabase.from("questions").select("*").order("created_at", { ascending: true });
+      let query = supabase
+        .from("questions")
+        .select("*")
+        .order("created_at", { ascending: true });
 
-      // αν υπάρχει συγκεκριμένος χαρακτήρας, φιλτράρουμε
       if (character && character !== "All") {
         query = query.eq("character", character);
       }
@@ -48,7 +50,7 @@ export default function ChatRoom({ character }: ChatRoomProps) {
       if (error) {
         console.error("Error loading messages:", error);
       } else {
-        setMessages(data as ChatMessage[]);
+        setMessages(data as QuestionRow[]);
       }
     };
 
@@ -68,22 +70,31 @@ export default function ChatRoom({ character }: ChatRoomProps) {
           <p className="text-gray-500 text-center">Δεν υπάρχουν μηνύματα...</p>
         ) : (
           messages.map((msg) => (
-            <div key={msg.id} className="mb-2">
-              <span className="font-bold">{msg.character || msg.username}:</span>{" "}
-              <span>{msg.content}</span>{" "}
-              <span className="text-xs text-gray-400">
-                ({new Date(msg.created_at).toLocaleTimeString("el-GR", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })})
-              </span>
+            <div
+              key={msg.id}
+              className="mb-4 p-3 rounded-md bg-white border border-gray-200 shadow-sm"
+            >
+              <p className="font-semibold text-sm text-gray-700 mb-1">
+                {msg.character}{" "}
+                <span className="text-xs text-gray-400">
+                  ({new Date(msg.created_at).toLocaleTimeString("el-GR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })})
+                </span>
+              </p>
+              <p className="text-gray-800">
+                <strong>Ερώτηση:</strong> {msg.question}
+              </p>
+              <p className="text-gray-800">
+                <strong>Απάντηση:</strong>{" "}
+                {msg.answer ? msg.answer : "⏳ Περιμένω απάντηση..."}
+              </p>
             </div>
           ))
         )}
         <div ref={messagesEndRef} />
       </div>
-
-      {/* Εδώ μπορεί να μπει φόρμα για αποστολή μηνυμάτων */}
     </div>
   );
 }
