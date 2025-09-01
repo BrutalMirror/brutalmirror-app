@@ -1,13 +1,13 @@
 'use client';
 
 export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import ChatRoom from "@/components/ChatRoom";
 
 function BrutalChatInner() {
-  // εδώ τρέχει μόνο στον client
   const searchParams = useSearchParams();
   const character = searchParams.get("character") || "All";
 
